@@ -169,7 +169,6 @@ class _HomeviewState extends State<Homeview> {
         color: const Color.fromARGB(255, 233, 72, 72),
         buttonBackgroundColor: Colors.transparent,
 
-
         onTap: (index) {
           setState(() {
             currentIndex = index;
