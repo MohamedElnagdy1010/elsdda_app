@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:sufra_app/common/textfild.dart';
 import 'package:sufra_app/home/widgets/foods.dart';
+import 'package:sufra_app/home/widgets/popularFoods.dart';
 
 class Homeview extends StatefulWidget {
   const Homeview({super.key});
@@ -14,10 +15,9 @@ class Homeview extends StatefulWidget {
 
 class _HomeviewState extends State<Homeview> {
   @override
+  int currentIndex = 2;
+  final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
   Widget build(BuildContext context) {
-    final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey =
-        GlobalKey();
-    int currentIndex = 2;
     final List<Map<String, String>> categories = [
       {"image": "assets/home/catigores/cat1.png", "title": "العروض"},
       {"image": "assets/home/catigores/cat2.png", "title": "سلطات"},
@@ -156,6 +156,63 @@ class _HomeviewState extends State<Homeview> {
                   ],
                 ),
                 Foods(),
+                Gap(20),
+                SizedBox(height: 400, child: PopularFoods()),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {},
+                      child: Text(
+                        "عرض الكل",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      "أحدث الاصناف",
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                Gap(30),
+                Column(
+  children: [
+    _buildFoodItem(
+      image: "assets/home/foods/pitza.png",
+      title: "بيتزا التوت من جوش",
+      restaurant: "مقهى الطعام الغربي",
+      rate: 4.9,
+      reviews: 124,
+    ),
+
+    const SizedBox(height: 18),
+
+    _buildFoodItem(
+      image: "assets/home/foods/egg.png",
+      title: "باريتا",
+      restaurant: "مقهى القهوة",
+      rate: 4.9,
+      reviews: 124,
+    ),
+
+    const SizedBox(height: 18),
+
+    _buildFoodItem(
+      image: "assets/home/foods/breads.png",
+      title: "ساعة الذروة في البيتزا",
+      restaurant: "مقهى طعام إيطالي",
+      rate: 4.9,
+      reviews: 124,
+    ),
+  ],
+),
+                Gap(80),
               ],
             ),
           ),
@@ -165,9 +222,9 @@ class _HomeviewState extends State<Homeview> {
       bottomNavigationBar: CurvedNavigationBar(
         index: currentIndex,
         height: 70,
-        backgroundColor: const Color.fromARGB(0, 83, 45, 45),
-        color: const Color.fromARGB(255, 233, 72, 72),
-        buttonBackgroundColor: Colors.transparent,
+        backgroundColor: const Color.fromARGB(0, 196, 33, 33),
+    
+  
 
         onTap: (index) {
           setState(() {
@@ -175,46 +232,171 @@ class _HomeviewState extends State<Homeview> {
           });
         },
 
-        items: [
-          SvgPicture.asset(
-            "assets/home/svgs/Group 6847.svg",
-            height: 20,
-            width: 20,
-            colorFilter: const ColorFilter.mode(Colors.grey, BlendMode.srcIn),
-          ),
+    items: [
+  SvgPicture.asset(
+    "assets/home/svgs/Group 6847.svg",
+    height: 20,
+    width: 20,
+    colorFilter: ColorFilter.mode(
+      currentIndex == 0
+          ? const Color(0xffB60F1A)
+          : Colors.grey,
+      BlendMode.srcIn,
+    ),
+  ),
 
-          SvgPicture.asset(
-            "assets/home/svgs/002-shopping-bag.svg",
-            height: 20,
-            width: 20,
-          ),
+  SvgPicture.asset(
+    "assets/home/svgs/002-shopping-bag.svg",
+    height: 20,
+    width: 20,
+    colorFilter: ColorFilter.mode(
+      currentIndex == 1
+          ? const Color(0xffB60F1A)
+          : Colors.grey,
+      BlendMode.srcIn,
+    ),
+  ),
 
-          Transform.translate(
-            offset: const Offset(0, -15),
-            child: CircleAvatar(
-              backgroundColor: const Color(0xffB60F1A),
-              radius: 30,
-              child: SvgPicture.asset(
-                "assets/home/svgs/001-home.svg",
-                height: 22,
-                width: 22,
-              ),
-            ),
-          ),
-
-          SvgPicture.asset(
-            "assets/home/svgs/man-user.svg",
-            height: 20,
-            width: 20,
-          ),
-
-          SvgPicture.asset(
-            "assets/home/svgs/Group 6814.svg",
-            height: 20,
-            width: 20,
-          ),
-        ],
+  // Home
+  CircleAvatar(
+    backgroundColor: currentIndex == 2
+        ? const Color(0xffB60F1A)
+        : Colors.grey,
+    radius: 30,
+    child: SvgPicture.asset(
+      "assets/home/svgs/001-home.svg",
+      height: 22,
+      width: 22,
+      colorFilter: const ColorFilter.mode(
+        Colors.white,
+        BlendMode.srcIn,
       ),
+    ),
+  ),
+
+  SvgPicture.asset(
+    "assets/home/svgs/man-user.svg",
+    height: 20,
+    width: 20,
+    colorFilter: ColorFilter.mode(
+      currentIndex == 3
+          ? const Color(0xffB60F1A)
+          : Colors.grey,
+      BlendMode.srcIn,
+    ),
+  ),
+
+  SvgPicture.asset(
+    "assets/home/svgs/Group 6814.svg",
+    height: 20,
+    width: 20,
+    colorFilter: ColorFilter.mode(
+      currentIndex == 4
+          ? const Color(0xffB60F1A)
+          : Colors.grey,
+      BlendMode.srcIn,
+    ),
+  ),
+],
+      ),
+    
+    
     );
   }
+  Widget _buildFoodItem({
+  required String image,
+  required String title,
+  required String restaurant,
+  required double rate,
+  required int reviews,
+}) {
+  return SizedBox(
+    height: 90,
+    child: Row(
+      textDirection: TextDirection.rtl,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // الصورة
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.asset(
+            image,
+            width: 75,
+            height: 75,
+            fit: BoxFit.cover,
+          ),
+        ),
+
+        const SizedBox(width: 15),
+
+        // المحتوى
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // اسم الأكلة
+              Text(
+                title,
+                textAlign: TextAlign.right,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+
+              const SizedBox(height: 3),
+
+              // اسم المطعم
+              Text(
+                restaurant,
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey[500],
+                ),
+              ),
+
+              const SizedBox(height: 4),
+
+              // التقييم
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    "($reviews تقييمات)",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+
+                  const SizedBox(width: 6),
+
+                  Text(
+                    rate.toString(),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xffB60F1A),
+                    ),
+                  ),
+
+                  const SizedBox(width: 4),
+
+                  const Icon(
+                    Icons.star,
+                    size: 16,
+                    color: Colors.orange,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
 }
