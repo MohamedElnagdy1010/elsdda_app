@@ -2,9 +2,11 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
-import 'package:sufra_app/common/textfild.dart';
+import 'package:sufra_app/categories/categoriesView.dart';
+import 'package:sufra_app/core/common/textfild.dart';
 import 'package:sufra_app/home/widgets/foods.dart';
 import 'package:sufra_app/home/widgets/popularFoods.dart';
+import 'package:sufra_app/products/views/allProductsView.dart';
 
 class Homeview extends StatefulWidget {
   const Homeview({super.key});
@@ -137,8 +139,15 @@ class _HomeviewState extends State<Homeview> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton(
-                      onPressed: () {},
-                      child: Text(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CategoriesView(),
+                          ),
+                        );
+                      },
+                      child: const Text(
                         "عرض الكل",
                         style: TextStyle(
                           fontSize: 20,
@@ -162,7 +171,14 @@ class _HomeviewState extends State<Homeview> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton(
-                      onPressed: () {},
+                    onPressed: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) =>  AllProductsView(),
+    ),
+  );
+},
                       child: Text(
                         "عرض الكل",
                         style: TextStyle(
@@ -182,36 +198,36 @@ class _HomeviewState extends State<Homeview> {
                 ),
                 Gap(30),
                 Column(
-  children: [
-    _buildFoodItem(
-      image: "assets/home/foods/pitza.png",
-      title: "بيتزا التوت من جوش",
-      restaurant: "مقهى الطعام الغربي",
-      rate: 4.9,
-      reviews: 124,
-    ),
+                  children: [
+                    _buildFoodItem(
+                      image: "assets/home/foods/pitza.png",
+                      title: "بيتزا التوت من جوش",
+                      restaurant: "مقهى الطعام الغربي",
+                      rate: 4.9,
+                      reviews: 124,
+                    ),
 
-    const SizedBox(height: 18),
+                    const SizedBox(height: 18),
 
-    _buildFoodItem(
-      image: "assets/home/foods/egg.png",
-      title: "باريتا",
-      restaurant: "مقهى القهوة",
-      rate: 4.9,
-      reviews: 124,
-    ),
+                    _buildFoodItem(
+                      image: "assets/home/foods/egg.png",
+                      title: "باريتا",
+                      restaurant: "مقهى القهوة",
+                      rate: 4.9,
+                      reviews: 124,
+                    ),
 
-    const SizedBox(height: 18),
+                    const SizedBox(height: 18),
 
-    _buildFoodItem(
-      image: "assets/home/foods/breads.png",
-      title: "ساعة الذروة في البيتزا",
-      restaurant: "مقهى طعام إيطالي",
-      rate: 4.9,
-      reviews: 124,
-    ),
-  ],
-),
+                    _buildFoodItem(
+                      image: "assets/home/foods/breads.png",
+                      title: "ساعة الذروة في البيتزا",
+                      restaurant: "مقهى طعام إيطالي",
+                      rate: 4.9,
+                      reviews: 124,
+                    ),
+                  ],
+                ),
                 Gap(80),
               ],
             ),
@@ -223,8 +239,6 @@ class _HomeviewState extends State<Homeview> {
         index: currentIndex,
         height: 70,
         backgroundColor: const Color.fromARGB(0, 196, 33, 33),
-    
-  
 
         onTap: (index) {
           setState(() {
@@ -232,171 +246,147 @@ class _HomeviewState extends State<Homeview> {
           });
         },
 
-    items: [
-  SvgPicture.asset(
-    "assets/home/svgs/Group 6847.svg",
-    height: 20,
-    width: 20,
-    colorFilter: ColorFilter.mode(
-      currentIndex == 0
-          ? const Color(0xffB60F1A)
-          : Colors.grey,
-      BlendMode.srcIn,
-    ),
-  ),
+        items: [
+          SvgPicture.asset(
+            "assets/home/svgs/Group 6847.svg",
+            height: 20,
+            width: 20,
+            colorFilter: ColorFilter.mode(
+              currentIndex == 0 ? const Color(0xffB60F1A) : Colors.grey,
+              BlendMode.srcIn,
+            ),
+          ),
 
-  SvgPicture.asset(
-    "assets/home/svgs/002-shopping-bag.svg",
-    height: 20,
-    width: 20,
-    colorFilter: ColorFilter.mode(
-      currentIndex == 1
-          ? const Color(0xffB60F1A)
-          : Colors.grey,
-      BlendMode.srcIn,
-    ),
-  ),
+          SvgPicture.asset(
+            "assets/home/svgs/002-shopping-bag.svg",
+            height: 20,
+            width: 20,
+            colorFilter: ColorFilter.mode(
+              currentIndex == 1 ? const Color(0xffB60F1A) : Colors.grey,
+              BlendMode.srcIn,
+            ),
+          ),
 
-  // Home
-  CircleAvatar(
-    backgroundColor: currentIndex == 2
-        ? const Color(0xffB60F1A)
-        : Colors.grey,
-    radius: 30,
-    child: SvgPicture.asset(
-      "assets/home/svgs/001-home.svg",
-      height: 22,
-      width: 22,
-      colorFilter: const ColorFilter.mode(
-        Colors.white,
-        BlendMode.srcIn,
+          // Home
+          CircleAvatar(
+            backgroundColor: currentIndex == 2
+                ? const Color(0xffB60F1A)
+                : Colors.grey,
+            radius: 30,
+            child: SvgPicture.asset(
+              "assets/home/svgs/001-home.svg",
+              height: 22,
+              width: 22,
+              colorFilter: const ColorFilter.mode(
+                Colors.white,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+
+          SvgPicture.asset(
+            "assets/home/svgs/man-user.svg",
+            height: 20,
+            width: 20,
+            colorFilter: ColorFilter.mode(
+              currentIndex == 3 ? const Color(0xffB60F1A) : Colors.grey,
+              BlendMode.srcIn,
+            ),
+          ),
+
+          SvgPicture.asset(
+            "assets/home/svgs/Group 6814.svg",
+            height: 20,
+            width: 20,
+            colorFilter: ColorFilter.mode(
+              currentIndex == 4 ? const Color(0xffB60F1A) : Colors.grey,
+              BlendMode.srcIn,
+            ),
+          ),
+        ],
       ),
-    ),
-  ),
-
-  SvgPicture.asset(
-    "assets/home/svgs/man-user.svg",
-    height: 20,
-    width: 20,
-    colorFilter: ColorFilter.mode(
-      currentIndex == 3
-          ? const Color(0xffB60F1A)
-          : Colors.grey,
-      BlendMode.srcIn,
-    ),
-  ),
-
-  SvgPicture.asset(
-    "assets/home/svgs/Group 6814.svg",
-    height: 20,
-    width: 20,
-    colorFilter: ColorFilter.mode(
-      currentIndex == 4
-          ? const Color(0xffB60F1A)
-          : Colors.grey,
-      BlendMode.srcIn,
-    ),
-  ),
-],
-      ),
-    
-    
     );
   }
+
   Widget _buildFoodItem({
-  required String image,
-  required String title,
-  required String restaurant,
-  required double rate,
-  required int reviews,
-}) {
-  return SizedBox(
-    height: 90,
-    child: Row(
-      textDirection: TextDirection.rtl,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // الصورة
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.asset(
-            image,
-            width: 75,
-            height: 75,
-            fit: BoxFit.cover,
+    required String image,
+    required String title,
+    required String restaurant,
+    required double rate,
+    required int reviews,
+  }) {
+    return SizedBox(
+      height: 90,
+      child: Row(
+        textDirection: TextDirection.rtl,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // الصورة
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset(image, width: 75, height: 75, fit: BoxFit.cover),
           ),
-        ),
 
-        const SizedBox(width: 15),
+          const SizedBox(width: 15),
 
-        // المحتوى
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              // اسم الأكلة
-              Text(
-                title,
-                textAlign: TextAlign.right,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
+          // المحتوى
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // اسم الأكلة
+                Text(
+                  title,
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 3),
+                const SizedBox(height: 3),
 
-              // اسم المطعم
-              Text(
-                restaurant,
-                textAlign: TextAlign.right,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey[500],
+                // اسم المطعم
+                Text(
+                  restaurant,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(fontSize: 13, color: Colors.grey[500]),
                 ),
-              ),
 
-              const SizedBox(height: 4),
+                const SizedBox(height: 4),
 
-              // التقييم
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    "($reviews تقييمات)",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[500],
+                // التقييم
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      "($reviews تقييمات)",
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                     ),
-                  ),
 
-                  const SizedBox(width: 6),
+                    const SizedBox(width: 6),
 
-                  Text(
-                    rate.toString(),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xffB60F1A),
+                    Text(
+                      rate.toString(),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xffB60F1A),
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(width: 4),
+                    const SizedBox(width: 4),
 
-                  const Icon(
-                    Icons.star,
-                    size: 16,
-                    color: Colors.orange,
-                  ),
-                ],
-              ),
-            ],
+                    const Icon(Icons.star, size: 16, color: Colors.orange),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 }

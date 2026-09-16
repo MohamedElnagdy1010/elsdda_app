@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-import 'package:sufra_app/common/filledButton.dart';
+import 'package:sufra_app/core/common/filledButton.dart';
 
 class OnboardingView extends StatefulWidget {
   const OnboardingView({super.key});

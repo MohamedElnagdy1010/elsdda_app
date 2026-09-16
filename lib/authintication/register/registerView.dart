@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:sufra_app/authintication/login/loginview.dart';
 
-import 'package:sufra_app/common/filledButton.dart';
-import 'package:sufra_app/common/textfild.dart';
+import 'package:sufra_app/core/common/filledButton.dart';
+import 'package:sufra_app/core/common/textfild.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
