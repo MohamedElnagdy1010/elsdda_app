@@ -3,7 +3,6 @@ import 'package:sufra_app/more/views/moreView.dart';
 
 
 
-void main() {
   runApp(const MyApp());
 }
 
