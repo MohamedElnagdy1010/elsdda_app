@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import 'package:sufra_app/core/common/filledButton.dart';
+import 'package:sufra_app/welcomeView.dart';
 
 class OnboardingView extends StatefulWidget {
   const OnboardingView({super.key});
@@ -15,6 +17,35 @@ class _OnboardingViewState extends State<OnboardingView> {
   final PageController pageController = PageController();
 
   int currentPage = 0;
+  @override
+  void dispose() {
+    pageController.dispose();
+    super.dispose();
+  }
+
+  void nextPage() {
+    if (currentPage < onboardingData.length - 1) {
+      pageController.nextPage(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      finishOnboarding();
+    }
+  }
+
+  Future<void> finishOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setBool('onboarding_completed', true);
+
+    if (!mounted) return;
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const WelcomeView()),
+    );
+  }
 
   final List<Map<String, String>> onboardingData = [
     {
@@ -78,7 +109,7 @@ class _OnboardingViewState extends State<OnboardingView> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: finishOnboarding,
                   child: const Text(
                     "تخطي",
                     style: TextStyle(fontSize: 16, color: Colors.grey),
@@ -166,7 +197,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                 text: currentPage == onboardingData.length - 1
                     ? "ابدأ الآن"
                     : "التالي",
-                onPressed: () {},
+                onPressed: nextPage,
                 color: Colors.red,
               ),
 

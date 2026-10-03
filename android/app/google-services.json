@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "53221093267",
+    "project_id": "elsdda-app",
+    "storage_bucket": "elsdda-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:53221093267:android:baca5af5d459021f4f0266",
+        "android_client_info": {
+          "package_name": "com.example.sufra_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCX-raKGpWD_sRV520pUZP9EkUBC3esVbs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,544 @@
+
+
+================================================
+FILE: lib\features\authentication\presentation\views\loginview.dart
+================================================
+// ignore_for_file: camel_case_types
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
+
+import 'package:sufra_app/core/common/filledButton.dart';
+import 'package:sufra_app/core/common/textfild.dart';
+import 'package:sufra_app/core/dependency_injection/dependency_injection.dart';
+import 'package:sufra_app/core/styles/widgets/app_status_dialog.dart';
+import 'package:sufra_app/features/authentication/presentation/cubit/login/login_cubit.dart';
+import 'package:sufra_app/features/authentication/presentation/cubit/login/login_state.dart';
+
+import 'package:sufra_app/features/authentication/presentation/views/registerView.dart';
+
+import 'package:sufra_app/features/main_navigation/presentation/main_navigation_view.dart';
+
+class loginView extends StatefulWidget {
+  const loginView({super.key});
+
+  @override
+  State<loginView> createState() => _loginViewState();
+}
+
+class _loginViewState extends State<loginView> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  String? _validateLogin() {
+    final email = emailController.text.trim();
+    final password = passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      return 'من فضلك أدخل البريد الإلكتروني وكلمة المرور';
+    }
+
+    final emailRegex = RegExp(
+      r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',
+    );
+
+    if (!emailRegex.hasMatch(email)) {
+      return 'من فضلك أدخل بريدًا إلكترونيًا صحيحًا';
+    }
+
+    if (password.length < 6) {
+      return 'كلمة المرور يجب ألا تقل عن 6 أحرف';
+    }
+
+    return null;
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => getIt<LoginCubit>(),
+      child: BlocConsumer<LoginCubit, LoginState>(
+        listener: (context, state) {
+          if (state is LoginSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'أهلاً ${state.user.name}',
+                  textAlign: TextAlign.right,
+                ),
+              ),
+            );
+
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => MainNavigationView()),
+              (route) => false,
+            );
+          }
+
+          if (state is LoginFailure) {
+            AppStatusDialog.showError(
+              context,
+              title: 'تعذر تسجيل الدخول',
+              message: state.message,
+            );
+          }
+        },
+        builder: (context, state) {
+          return Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 50.0,
+                horizontal: 20.0,
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    "تسجيل الدخول",
+                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                  ),
+
+                  const Gap(10),
+
+                  const Text(
+                    "أضف التفاصيل الخاصة بك لتسجيل الدخول",
+                    style: TextStyle(fontSize: 20),
+                  ),
+
+                  const Spacer(),
+
+                  TextField(
+                    controller: emailController,
+                    textAlign: TextAlign.right,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: textField.copyWith(
+                      hintText: "بريدك الإلكتروني",
+                    ),
+                  ),
+
+                  const Gap(20),
+
+                  TextField(
+                    controller: passwordController,
+                    textAlign: TextAlign.right,
+                    keyboardType: TextInputType.visiblePassword,
+                    obscureText: true,
+                    decoration: textField.copyWith(hintText: "كلمة المرور"),
+                  ),
+
+                  const Gap(20),
+
+                  if (state is LoginLoading)
+                    const CircularProgressIndicator()
+                  else
+                    CustomFilledbutton(
+                      text: "تسجيل الدخول",
+                      onPressed: () {
+                        FocusScope.of(context).unfocus();
+
+                        final error = _validateLogin();
+
+                        if (error != null) {
+                          AppStatusDialog.showWarning(
+                            context,
+                            title: 'تحقق من البيانات',
+                            message: error,
+                          );
+                          return;
+                        }
+
+                        context.read<LoginCubit>().login(
+                          email: emailController.text.trim(),
+                          password: passwordController.text,
+                        );
+                      },
+                      color: const Color.fromARGB(255, 136, 8, 8),
+                    ),
+
+                  TextButton(
+                    onPressed: () {},
+                    child: Text(
+                      "هل نسيت كلمة المرور الخاصة بك؟ انقر هنا",
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.grey[800],
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+
+                  const Gap(40),
+
+                  Text(
+                    "أو تسجيل الدخول باستخدام",
+                    style: TextStyle(fontSize: 20, color: Colors.grey[800]),
+                  ),
+
+                  const Gap(20),
+
+                  CustomFilledbutton(
+                    text: "تسجيل الدخول باستخدام فيسبوك",
+                    onPressed: () {},
+                    color: const Color(0xff367FC0),
+                    child: const Icon(
+                      Icons.facebook,
+                      size: 40,
+                      color: Colors.white,
+                    ),
+                  ),
+
+                  const Gap(20),
+
+                  CustomFilledbutton(
+                    text: "تسجيل الدخول باستخدام جوجل",
+                    onPressed: () {},
+                    color: const Color(0xffCA9744),
+                    child: const Icon(
+                      Icons.g_mobiledata_outlined,
+                      size: 70,
+                      color: Colors.white,
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const RegisterView()),
+                      );
+                    },
+                    child: RichText(
+                      text: TextSpan(
+                        text: "ليس لديك حساب؟ ",
+                        style: TextStyle(fontSize: 20, color: Colors.grey[800]),
+                        children: const [
+                          TextSpan(
+                            text: "تسجيل",
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Color.fromARGB(255, 136, 8, 8),
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+================================================
+FILE: lib\features\authentication\presentation\views\registerView.dart
+================================================
+// ignore_for_file: file_names
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
+
+import 'package:sufra_app/core/common/filledButton.dart';
+import 'package:sufra_app/core/common/textfild.dart';
+import 'package:sufra_app/core/dependency_injection/dependency_injection.dart';
+
+import 'package:sufra_app/features/authentication/presentation/cubit/register/register_cubit.dart';
+import 'package:sufra_app/features/authentication/presentation/cubit/register/register_state.dart';
+import 'package:sufra_app/features/authentication/presentation/views/loginView.dart';
+import 'package:sufra_app/features/main_navigation/presentation/main_navigation_view.dart';
+import 'package:sufra_app/features/favorites/presentation/cubit/favorites_cubit.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+class RegisterView extends StatefulWidget {
+  const RegisterView({super.key});
+
+  @override
+  State<RegisterView> createState() => _RegisterViewState();
+}
+
+class _RegisterViewState extends State<RegisterView> {
+  final nameController = TextEditingController();
+  final emailController = TextEditingController();
+  final phoneController = TextEditingController();
+  final addressController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+  String? _validateRegister() {
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final phone = phoneController.text.trim();
+    final address = addressController.text.trim();
+    final password = passwordController.text;
+    final confirmPassword = confirmPasswordController.text;
+
+    if (name.isEmpty ||
+        email.isEmpty ||
+        phone.isEmpty ||
+        address.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
+      return 'من فضلك أكمل جميع البيانات المطلوبة';
+    }
+
+    if (name.length < 2) {
+      return 'من فضلك أدخل اسمًا صحيحًا';
+    }
+
+    final emailRegex = RegExp(
+      r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',
+    );
+
+    if (!emailRegex.hasMatch(email)) {
+      return 'من فضلك أدخل بريدًا إلكترونيًا صحيحًا';
+    }
+
+    final normalizedPhone = phone.replaceAll(RegExp(r'[\s-]'), '');
+
+    if (!RegExp(r'^\+?[0-9]{8,15}$').hasMatch(normalizedPhone)) {
+      return 'من فضلك أدخل رقم جوال صحيحًا';
+    }
+
+    if (address.length < 3) {
+      return 'من فضلك أدخل عنوانًا صحيحًا';
+    }
+
+    if (password.length < 6) {
+      return 'كلمة المرور يجب ألا تقل عن 6 أحرف';
+    }
+
+    if (password != confirmPassword) {
+      return 'كلمتا المرور غير متطابقتين';
+    }
+
+    return null;
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    phoneController.dispose();
+    addressController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => getIt<RegisterCubit>(),
+      child: BlocConsumer<RegisterCubit, RegisterState>(
+        listener: (context, state) {
+          if (state is RegisterSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'تم إنشاء الحساب بنجاح',
+                  textAlign: TextAlign.right,
+                ),
+              ),
+            );
+
+            final user = FirebaseAuth.instance.currentUser;
+
+            if (user != null) {
+              context.read<FavoritesCubit>().loadFavorites(user.uid);
+            }
+
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const MainNavigationView()),
+              (route) => false,
+            );
+          }
+
+          if (state is RegisterFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message, textAlign: TextAlign.right),
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          return Scaffold(
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 30,
+                  horizontal: 20,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const Text(
+                        "تسجيل",
+                        style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const Gap(10),
+
+                      const Text(
+                        "أضف التفاصيل الخاصة بك للتسجيل",
+                        style: TextStyle(fontSize: 20),
+                      ),
+
+                      const Gap(40),
+
+                      TextField(
+                        controller: nameController,
+                        textAlign: TextAlign.right,
+                        keyboardType: TextInputType.name,
+                        decoration: textField.copyWith(hintText: "الاسم"),
+                      ),
+
+                      const Gap(20),
+
+                      TextField(
+                        controller: emailController,
+                        textAlign: TextAlign.right,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: textField.copyWith(
+                          hintText: "بريدك الإلكتروني",
+                        ),
+                      ),
+
+                      const Gap(20),
+
+                      TextField(
+                        controller: phoneController,
+                        textAlign: TextAlign.right,
+                        keyboardType: TextInputType.phone,
+                        decoration: textField.copyWith(hintText: "رقم الجوال"),
+                      ),
+
+                      const Gap(20),
+
+                      TextField(
+                        controller: addressController,
+                        textAlign: TextAlign.right,
+                        keyboardType: TextInputType.streetAddress,
+                        decoration: textField.copyWith(hintText: "العنوان"),
+                      ),
+
+                      const Gap(20),
+
+                      TextField(
+                        controller: passwordController,
+                        textAlign: TextAlign.right,
+                        obscureText: true,
+                        decoration: textField.copyWith(hintText: "كلمة المرور"),
+                      ),
+
+                      const Gap(20),
+
+                      TextField(
+                        controller: confirmPasswordController,
+                        textAlign: TextAlign.right,
+                        obscureText: true,
+                        decoration: textField.copyWith(
+                          hintText: "تأكيد كلمة المرور",
+                        ),
+                      ),
+
+                      const Gap(30),
+
+                      if (state is RegisterLoading)
+                        const CircularProgressIndicator()
+                      else
+                        CustomFilledbutton(
+                          text: "تسجيل",
+                          onPressed: () {
+                            FocusScope.of(context).unfocus();
+
+                            final error = _validateRegister();
+
+                            if (error != null) {
+                              ScaffoldMessenger.of(context)
+                                ..hideCurrentSnackBar()
+                                ..showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      error,
+                                      textAlign: TextAlign.right,
+                                    ),
+                                  ),
+                                );
+                              return;
+                            }
+
+                            context.read<RegisterCubit>().register(
+                              name: nameController.text.trim(),
+                              email: emailController.text.trim(),
+                              phone: phoneController.text.trim(),
+                              address: addressController.text.trim(),
+                              password: passwordController.text,
+                              confirmPassword: confirmPasswordController.text,
+                            );
+                          },
+
+                          color: const Color.fromARGB(255, 136, 8, 8),
+                        ),
+
+                      const Gap(40),
+
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const loginView(),
+                            ),
+                          );
+                        },
+                        child: RichText(
+                          text: TextSpan(
+                            text: "هل لديك حساب بالفعل؟ ",
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.grey[800],
+                            ),
+                            children: const [
+                              TextSpan(
+                                text: "تسجيل الدخول",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  color: Color.fromARGB(255, 136, 8, 8),
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

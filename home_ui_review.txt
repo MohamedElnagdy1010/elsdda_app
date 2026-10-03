@@ -1,0 +1,1376 @@
+
+================================================
+FILE: E:\projects_To_Find_Job\elsdda_app\lib\features\home\presentation\views\homeView.dart
+================================================
+// ignore_for_file: file_names
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:sufra_app/core/dependency_injection/dependency_injection.dart';
+
+import 'package:sufra_app/features/home/presentation/widgets/FeaturedProductsSection.dart';
+import 'package:sufra_app/features/home/presentation/widgets/home_categories_section.dart';
+import 'package:sufra_app/features/home/presentation/widgets/home_header.dart';
+import 'package:sufra_app/features/home/presentation/widgets/home_promo_banner.dart';
+import 'package:sufra_app/features/home/presentation/widgets/home_section_header.dart';
+import 'package:sufra_app/features/home/presentation/widgets/latest_products_section.dart';
+import 'package:sufra_app/features/home/presentation/widgets/popular_products_section.dart';
+
+import 'package:sufra_app/features/products/presentation/cubit/products/products_cubit.dart';
+import 'package:sufra_app/features/products/presentation/views/allProductsView.dart';
+
+import 'package:sufra_app/features/profile/presentation/cubit/profile/profile_cubit.dart';
+import 'package:sufra_app/features/home/presentation/widgets/home_search_field.dart';
+
+class Homeview extends StatelessWidget {
+  const Homeview({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<ProductsCubit>(
+          create: (_) => getIt<ProductsCubit>()..loadHomeData(),
+        ),
+        BlocProvider<ProfileCubit>(
+          create: (_) => getIt<ProfileCubit>()..getProfile(),
+        ),
+      ],
+      child: const _HomeBody(),
+    );
+  }
+}
+
+class _HomeBody extends StatelessWidget {
+  const _HomeBody();
+
+  void _openAllProducts(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AllProductsView()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xffFAFAFA),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 110),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              const HomeHeader(),
+
+              const SizedBox(height: 14),
+
+              const HomeSearchField(),
+
+              const SizedBox(height: 14),
+
+              const HomePromoBanner(),
+
+              const SizedBox(height: 18),
+
+              HomeSectionHeader(
+                title: 'الأقسام',
+                onViewAll: () => _openAllProducts(context),
+              ),
+
+              const SizedBox(height: 10),
+
+              const HomeCategoriesSection(),
+
+              const SizedBox(height: 22),
+
+              HomeSectionHeader(
+                title: 'الأكثر طلبًا',
+                onViewAll: () => _openAllProducts(context),
+              ),
+
+              const SizedBox(height: 10),
+
+              const SizedBox(height: 245, child: PopularProductsSection()),
+
+              const SizedBox(height: 22),
+
+              HomeSectionHeader(
+                title: 'مختاراتنا لك',
+                onViewAll: () => _openAllProducts(context),
+              ),
+
+              const SizedBox(height: 10),
+
+              const FeaturedProductsSection(),
+
+              const SizedBox(height: 22),
+
+              HomeSectionHeader(
+                title: 'وصل حديثًا',
+                onViewAll: () => _openAllProducts(context),
+              ),
+
+              const SizedBox(height: 10),
+
+              const LatestProductsSection(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+================================================
+FILE: E:\projects_To_Find_Job\elsdda_app\lib\features\home\presentation\widgets\FeaturedProductsSection.dart
+================================================
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+import 'package:sufra_app/core/utils/local_image_mapper.dart';
+import 'package:sufra_app/core/widgets/app_network_image.dart';
+import 'package:sufra_app/features/products/presentation/cubit/products/products_cubit.dart';
+import 'package:sufra_app/features/products/presentation/cubit/products/products_state.dart';
+import 'package:sufra_app/features/products/presentation/views/productDetailsView.dart';
+
+class FeaturedProductsSection extends StatelessWidget {
+  const FeaturedProductsSection({super.key});
+
+  static const Color _primaryColor = Color(0xffB60F1A);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProductsCubit, ProductsState>(
+      builder: (context, state) {
+        if (state is ProductsLoading) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 30),
+            child: Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: _primaryColor,
+              ),
+            ),
+          );
+        }
+
+        if (state is ProductsFailure) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: Text(
+                state.message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
+          );
+        }
+
+        if (state is ProductsLoaded) {
+          final products = state.featuredProducts;
+
+          if (products.isEmpty) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: Text(
+                  'لا توجد مختارات حاليًا',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                ),
+              ),
+            );
+          }
+
+          return ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: products.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 14),
+            itemBuilder: (context, index) {
+              final product = products[index];
+
+              return Material(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ProductDetailsView(product: product),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xffEEEEEE)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Stack(
+                          children: [
+                            AppNetworkImage(
+                              imageUrl: product.image,
+                              fallbackAsset: LocalImageMapper.product(
+                                product.id,
+                              ),
+                              width: double.infinity,
+                              height: 190,
+                              fit: BoxFit.cover,
+                            ),
+                            Positioned(
+                              top: 12,
+                              right: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.92),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Text(
+                                  'مختاراتنا',
+                                  style: TextStyle(
+                                    color: _primaryColor,
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(14, 11, 14, 12),
+                          child: Row(
+                            textDirection: TextDirection.rtl,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      product.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.right,
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w800,
+                                        color: Color(0xff202020),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 7),
+                                    Row(
+                                      textDirection: TextDirection.rtl,
+                                      children: [
+                                        SvgPicture.asset(
+                                          'assets/home/svgs/rate.svg',
+                                          width: 14,
+                                          height: 14,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          product.rating.toString(),
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          '(${product.reviews} تقييم)',
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            color: Color(0xff999999),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'يبدأ من',
+                                    style: TextStyle(
+                                      fontSize: 9.5,
+                                      color: Color(0xff999999),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${product.price.toStringAsFixed(0)} ريال',
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w900,
+                                      color: _primaryColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        }
+
+        return const SizedBox.shrink();
+      },
+    );
+  }
+}
+
+================================================
+FILE: E:\projects_To_Find_Job\elsdda_app\lib\features\home\presentation\widgets\home_categories_section.dart
+================================================
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:sufra_app/core/utils/local_image_mapper.dart';
+import 'package:sufra_app/core/widgets/app_network_image.dart';
+
+import 'package:sufra_app/features/products/presentation/cubit/products/products_cubit.dart';
+import 'package:sufra_app/features/products/presentation/cubit/products/products_state.dart';
+import 'package:sufra_app/features/products/presentation/views/allProductsView.dart';
+
+class HomeCategoriesSection extends StatelessWidget {
+  const HomeCategoriesSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProductsCubit, ProductsState>(
+      builder: (context, state) {
+        if (state is ProductsLoading) {
+          return const SizedBox(
+            height: 96,
+            child: Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Color(0xffB60F1A),
+              ),
+            ),
+          );
+        }
+
+        if (state is ProductsFailure) {
+          return SizedBox(
+            height: 96,
+            child: Center(
+              child: Text(
+                state.message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
+          );
+        }
+
+        if (state is ProductsLoaded) {
+          final categories = state.categories.take(4).toList();
+
+          if (categories.isEmpty) {
+            return const SizedBox(
+              height: 96,
+              child: Center(
+                child: Text(
+                  'لا توجد أقسام حاليًا',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ),
+            );
+          }
+
+          return Row(
+            textDirection: TextDirection.rtl,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: List.generate(categories.length, (index) {
+              final category = categories[index];
+
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AllProductsView(
+                            categoryId: category.id,
+                            categoryName: category.name,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: const Color(0xffF5F5F5),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: const Color(0xffEEEEEE)),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: AppNetworkImage(
+                            imageUrl: category.image,
+                            fallbackAsset: LocalImageMapper.category(
+                              category.id,
+                            ),
+                            width: 64,
+                            height: 64,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        const SizedBox(height: 7),
+                        Text(
+                          category.name,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xff333333),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+          );
+        }
+
+        return const SizedBox(height: 96);
+      },
+    );
+  }
+}
+
+================================================
+FILE: E:\projects_To_Find_Job\elsdda_app\lib\features\home\presentation\widgets\home_header.dart
+================================================
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:sufra_app/features/cart/presentation/cubit/cart/cart_cubit.dart';
+import 'package:sufra_app/features/cart/presentation/views/cart_view.dart';
+import 'package:sufra_app/features/notifications/presentation/views/notifications_view.dart';
+import 'package:sufra_app/features/profile/presentation/cubit/profile/profile_cubit.dart';
+import 'package:sufra_app/features/profile/presentation/cubit/profile/profile_state.dart';
+
+class HomeHeader extends StatelessWidget {
+  const HomeHeader({super.key});
+
+  static const Color _primaryColor = Color(0xffB60F1A);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProfileCubit, ProfileState>(
+      builder: (context, state) {
+        final user = _getUserFromState(state);
+
+        final name = user?.name.trim() ?? '';
+        final address = user?.address.trim() ?? '';
+
+        return Row(
+          textDirection: TextDirection.rtl,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    name.isEmpty ? 'أهلًا بك 👋' : 'أهلًا، $name 👋',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    textDirection: TextDirection.rtl,
+                    children: [
+                      const Icon(
+                        Icons.location_on_rounded,
+                        size: 15,
+                        color: _primaryColor,
+                      ),
+                      const SizedBox(width: 3),
+                      Flexible(
+                        child: Text(
+                          address.isEmpty ? 'أضف عنوان التوصيل' : address,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(width: 10),
+
+            _HeaderButton(
+              icon: Icons.notifications_none_rounded,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const NotificationsView()),
+                );
+              },
+            ),
+
+            const SizedBox(width: 7),
+
+            _CartButton(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CartView()),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  dynamic _getUserFromState(ProfileState state) {
+    if (state is ProfileLoaded) {
+      return state.user;
+    }
+
+    if (state is ProfileUpdating) {
+      return state.user;
+    }
+
+    if (state is ProfileUpdateSuccess) {
+      return state.user;
+    }
+
+    if (state is ProfileUpdateFailure) {
+      return state.user;
+    }
+
+    return null;
+  }
+}
+
+class _HeaderButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _HeaderButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(13),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(13),
+        child: Container(
+          width: 41,
+          height: 41,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(color: const Color(0xffECECEC)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.025),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Icon(icon, size: 21, color: const Color(0xff252525)),
+        ),
+      ),
+    );
+  }
+}
+
+class _CartButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _CartButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CartCubit, dynamic>(
+      builder: (context, state) {
+        final count = state.totalQuantity;
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            _HeaderButton(icon: Icons.shopping_bag_outlined, onTap: onTap),
+            if (count > 0)
+              Positioned(
+                right: -4,
+                top: -5,
+                child: Container(
+                  constraints: const BoxConstraints(
+                    minWidth: 17,
+                    minHeight: 17,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xffB60F1A),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    count > 99 ? '99+' : '$count',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 8,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+================================================
+FILE: E:\projects_To_Find_Job\elsdda_app\lib\features\home\presentation\widgets\home_promo_banner.dart
+================================================
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+
+class HomePromoBanner extends StatefulWidget {
+  const HomePromoBanner({super.key});
+
+  @override
+  State<HomePromoBanner> createState() => _HomePromoBannerState();
+}
+
+class _HomePromoBannerState extends State<HomePromoBanner> {
+  static const int _initialPage = 1000;
+
+  final PageController _pageController = PageController(
+    initialPage: _initialPage,
+    viewportFraction: 1.0,
+  );
+
+  final List<String> _banners = const [
+    'assets/home/banners/banner_1.png',
+    'assets/home/banners/banner_2.png',
+    'assets/home/banners/banner_3.png',
+  ];
+
+  Timer? _timer;
+
+  int _currentPage = 0;
+  int _virtualPage = _initialPage;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoPlay();
+  }
+
+  void _startAutoPlay() {
+    _timer?.cancel();
+
+    _timer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!_pageController.hasClients) return;
+
+      _virtualPage++;
+
+      _pageController.animateToPage(
+        _virtualPage,
+        duration: const Duration(milliseconds: 550),
+        curve: Curves.easeInOutCubic,
+      );
+    });
+  }
+
+  void _onPageChanged(int index) {
+    _virtualPage = index;
+
+    if (!mounted) return;
+
+    setState(() {
+      _currentPage = index % _banners.length;
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 310,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(22),
+            child: PageView.builder(
+              controller: _pageController,
+              onPageChanged: _onPageChanged,
+              itemBuilder: (context, index) {
+                final bannerIndex = index % _banners.length;
+
+                return _BannerImage(imagePath: _banners[bannerIndex]);
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(_banners.length, (index) {
+            final selected = index == _currentPage;
+
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOut,
+              width: selected ? 22 : 6,
+              height: 6,
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              decoration: BoxDecoration(
+                color: selected
+                    ? const Color(0xffB60F1A)
+                    : const Color(0xffD9D9D9),
+                borderRadius: BorderRadius.circular(20),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+}
+
+class _BannerImage extends StatelessWidget {
+  final String imagePath;
+
+  const _BannerImage({required this.imagePath});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xffF2F2F2),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: Image.asset(
+          imagePath,
+          width: double.infinity,
+          height: double.infinity,
+
+          // هنحافظ على ملء مساحة البانر بالكامل.
+          fit: BoxFit.fill,
+
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: const Color(0xffB60F1A),
+              alignment: Alignment.center,
+              child: const Icon(
+                Icons.restaurant_menu_rounded,
+                size: 44,
+                color: Colors.white,
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+================================================
+FILE: E:\projects_To_Find_Job\elsdda_app\lib\features\home\presentation\widgets\home_search_field.dart
+================================================
+import 'package:flutter/material.dart';
+
+import 'package:sufra_app/features/products/presentation/views/search_products_view.dart';
+
+class HomeSearchField extends StatelessWidget {
+  const HomeSearchField({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(15),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SearchProductsView()),
+          );
+        },
+        borderRadius: BorderRadius.circular(15),
+        child: Container(
+          height: 50,
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: const Color(0xffECECEC)),
+          ),
+          child: Row(
+            textDirection: TextDirection.rtl,
+            children: [
+              const Icon(
+                Icons.search_rounded,
+                size: 21,
+                color: Color(0xffB60F1A),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'ابحث عن وجبتك المفضلة...',
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ),
+              Container(width: 1, height: 22, color: const Color(0xffEEEEEE)),
+              const SizedBox(width: 11),
+              Icon(Icons.tune_rounded, size: 19, color: Colors.grey[600]),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+================================================
+FILE: E:\projects_To_Find_Job\elsdda_app\lib\features\home\presentation\widgets\home_section_header.dart
+================================================
+import 'package:flutter/material.dart';
+
+class HomeSectionHeader extends StatelessWidget {
+  final String title;
+  final VoidCallback? onViewAll;
+
+  const HomeSectionHeader({super.key, required this.title, this.onViewAll});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      textDirection: TextDirection.rtl,
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: Color(0xff1C1C1C),
+            ),
+          ),
+        ),
+        if (onViewAll != null) ...[
+          const SizedBox(width: 10),
+          TextButton(
+            onPressed: onViewAll,
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xffB60F1A),
+              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'عرض الكل',
+                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
+                ),
+                SizedBox(width: 3),
+                Icon(Icons.arrow_back_ios_new_rounded, size: 10),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+================================================
+FILE: E:\projects_To_Find_Job\elsdda_app\lib\features\home\presentation\widgets\latest_products_section.dart
+================================================
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:sufra_app/core/utils/local_image_mapper.dart';
+import 'package:sufra_app/core/widgets/app_network_image.dart';
+import 'package:sufra_app/features/products/domain/entities/product_entity.dart';
+import 'package:sufra_app/features/products/presentation/cubit/products/products_cubit.dart';
+import 'package:sufra_app/features/products/presentation/cubit/products/products_state.dart';
+import 'package:sufra_app/features/products/presentation/views/productDetailsView.dart';
+
+class LatestProductsSection extends StatelessWidget {
+  const LatestProductsSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProductsCubit, ProductsState>(
+      builder: (context, state) {
+        if (state is ProductsLoading) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 25),
+            child: Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Color(0xffB60F1A),
+              ),
+            ),
+          );
+        }
+
+        if (state is ProductsFailure) {
+          return Center(
+            child: Text(
+              state.message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12),
+            ),
+          );
+        }
+
+        if (state is ProductsLoaded) {
+          final products = state.latestProducts;
+
+          if (products.isEmpty) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: Text(
+                  'لا توجد أصناف حديثة حاليًا',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                ),
+              ),
+            );
+          }
+
+          return ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: products.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 10),
+            itemBuilder: (context, index) {
+              return _LatestProductItem(product: products[index]);
+            },
+          );
+        }
+
+        return const SizedBox.shrink();
+      },
+    );
+  }
+}
+
+class _LatestProductItem extends StatelessWidget {
+  final ProductEntity product;
+
+  const _LatestProductItem({required this.product});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ProductDetailsView(product: product),
+            ),
+          );
+        },
+        child: Container(
+          height: 92,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xffEEEEEE)),
+          ),
+          child: Row(
+            textDirection: TextDirection.rtl,
+            children: [
+              AppNetworkImage(
+                imageUrl: product.image,
+                fallbackAsset: LocalImageMapper.product(product.id),
+                width: 76,
+                height: 76,
+                fit: BoxFit.cover,
+                borderRadius: BorderRadius.circular(13),
+              ),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      product.name,
+                      textAlign: TextAlign.right,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xff202020),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      textDirection: TextDirection.rtl,
+                      children: [
+                        const Icon(
+                          Icons.star_rounded,
+                          size: 14,
+                          color: Colors.orange,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          product.rating.toString(),
+                          style: const TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          '(${product.reviews})',
+                          style: const TextStyle(
+                            fontSize: 9.5,
+                            color: Color(0xff999999),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${product.price.toStringAsFixed(0)} ريال',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xffB60F1A),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 27,
+                    height: 27,
+                    decoration: const BoxDecoration(
+                      color: Color(0xffF8EEEE),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back_rounded,
+                      size: 15,
+                      color: Color(0xffB60F1A),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+================================================
+FILE: E:\projects_To_Find_Job\elsdda_app\lib\features\home\presentation\widgets\popular_products_section.dart
+================================================
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+import 'package:sufra_app/core/utils/local_image_mapper.dart';
+import 'package:sufra_app/core/widgets/app_network_image.dart';
+
+import 'package:sufra_app/features/products/presentation/cubit/products/products_cubit.dart';
+import 'package:sufra_app/features/products/presentation/cubit/products/products_state.dart';
+import 'package:sufra_app/features/products/presentation/views/productDetailsView.dart';
+
+class PopularProductsSection extends StatelessWidget {
+  const PopularProductsSection({super.key});
+
+  static const Color _primaryColor = Color(0xffB60F1A);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProductsCubit, ProductsState>(
+      builder: (context, state) {
+        if (state is ProductsLoading) {
+          return const Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: _primaryColor,
+            ),
+          );
+        }
+
+        if (state is ProductsFailure) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  state.message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 12),
+                ),
+                const SizedBox(height: 7),
+                TextButton(
+                  onPressed: () {
+                    context.read<ProductsCubit>().loadHomeData();
+                  },
+                  child: const Text(
+                    'إعادة المحاولة',
+                    style: TextStyle(fontSize: 12, color: _primaryColor),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (state is ProductsLoaded) {
+          final products = state.popularProducts;
+
+          if (products.isEmpty) {
+            return const Center(
+              child: Text(
+                'لا توجد منتجات شائعة حاليًا',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              ),
+            );
+          }
+
+          return ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            itemCount: products.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 11),
+            itemBuilder: (context, index) {
+              final product = products[index];
+
+              void openProduct() {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProductDetailsView(product: product),
+                  ),
+                );
+              }
+
+              return Material(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                child: InkWell(
+                  onTap: openProduct,
+                  borderRadius: BorderRadius.circular(18),
+                  child: Container(
+                    width: 180,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: const Color(0xffEEEEEE)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.035),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(18),
+                          ),
+                          child: AppNetworkImage(
+                            imageUrl: product.image,
+                            fallbackAsset: LocalImageMapper.product(product.id),
+                            width: double.infinity,
+                            height: 145,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  product.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.right,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xff202020),
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                Row(
+                                  textDirection: TextDirection.rtl,
+                                  children: [
+                                    SvgPicture.asset(
+                                      'assets/home/svgs/rate.svg',
+                                      width: 13,
+                                      height: 13,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      product.rating.toString(),
+                                      style: const TextStyle(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xff777777),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      '(${product.reviews})',
+                                      style: const TextStyle(
+                                        fontSize: 9.5,
+                                        color: Color(0xff999999),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Spacer(),
+                                Row(
+                                  textDirection: TextDirection.rtl,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        '${product.price.toStringAsFixed(0)} ريال',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w800,
+                                          color: _primaryColor,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      width: 28,
+                                      height: 28,
+                                      decoration: const BoxDecoration(
+                                        color: _primaryColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.arrow_back_rounded,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        }
+
+        return const SizedBox.shrink();
+      },
+    );
+  }
+}

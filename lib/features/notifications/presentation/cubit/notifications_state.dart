@@ -1,0 +1,39 @@
+import 'package:equatable/equatable.dart';
+
+import '../../domain/entities/notification_entity.dart';
+
+enum NotificationsStatus { initial, loading, success, failure }
+
+class NotificationsState extends Equatable {
+  final NotificationsStatus status;
+  final List<NotificationEntity> notifications;
+  final String? errorMessage;
+
+  const NotificationsState({
+    this.status = NotificationsStatus.initial,
+    this.notifications = const [],
+    this.errorMessage,
+  });
+
+  int get unreadCount {
+    return notifications.where((notification) => !notification.isRead).length;
+  }
+
+  bool get isEmpty => notifications.isEmpty;
+
+  NotificationsState copyWith({
+    NotificationsStatus? status,
+    List<NotificationEntity>? notifications,
+    String? errorMessage,
+    bool clearError = false,
+  }) {
+    return NotificationsState(
+      status: status ?? this.status,
+      notifications: notifications ?? this.notifications,
+      errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
+    );
+  }
+
+  @override
+  List<Object?> get props => [status, notifications, errorMessage];
+}
