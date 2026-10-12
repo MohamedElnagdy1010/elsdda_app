@@ -182,7 +182,12 @@ class WelcomeView extends StatelessWidget {
                             },
                             style: ElevatedButton.styleFrom(
                               elevation: 0,
-                              backgroundColor: const Color.fromARGB(210, 138, 34, 37),
+                              backgroundColor: const Color.fromARGB(
+                                210,
+                                138,
+                                34,
+                                37,
+                              ),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(18),

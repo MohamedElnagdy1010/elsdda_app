@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sufra_app/features/branches/presentation/widgets/branches_map.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -49,6 +50,7 @@ class BranchesSection extends StatelessWidget {
                 'تواصل معنا من خلال أقرب فرع لك',
                 style: TextStyle(color: Colors.grey[600], fontSize: 14),
               ),
+              BranchesMap(branches: state.branches),
               const SizedBox(height: 16),
               ...state.branches.map(
                 (branch) => Padding(

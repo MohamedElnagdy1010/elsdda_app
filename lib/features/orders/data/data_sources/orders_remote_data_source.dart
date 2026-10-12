@@ -35,6 +35,7 @@ class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
       'items': items,
       'address': order.address.trim(),
       'paymentMethod': order.paymentMethod,
+      'branchId': order.branchId,
     });
   }
 

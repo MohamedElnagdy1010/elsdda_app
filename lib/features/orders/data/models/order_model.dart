@@ -16,6 +16,7 @@ class OrderModel extends OrderEntity {
     required super.paymentStatus,
     required super.status,
     required super.createdAt,
+    required super.branchId,
   });
 
   factory OrderModel.fromEntity(OrderEntity entity) {
@@ -31,6 +32,7 @@ class OrderModel extends OrderEntity {
       paymentStatus: entity.paymentStatus,
       status: entity.status,
       createdAt: entity.createdAt,
+      branchId: entity.branchId,
     );
   }
 
@@ -58,6 +60,7 @@ class OrderModel extends OrderEntity {
           _legacyPaymentStatus(paymentMethod),
       status: map['status'] as String? ?? 'pending',
       createdAt: _dateTimeFromFirestore(map['createdAt']),
+      branchId: map['branchId'] as String? ?? '',
     );
   }
 
@@ -75,6 +78,7 @@ class OrderModel extends OrderEntity {
       'paymentStatus': paymentStatus,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
+      'branchId': branchId,
     };
   }
 

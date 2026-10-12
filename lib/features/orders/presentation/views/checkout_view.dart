@@ -11,6 +11,9 @@ import 'package:sufra_app/features/orders/presentation/cubit/orders/orders_cubit
 import 'package:sufra_app/features/orders/presentation/cubit/orders/orders_state.dart';
 import 'package:sufra_app/features/orders/presentation/views/order_success_view.dart';
 import 'package:sufra_app/features/payment/presentation/views/paymentDetailsView.dart';
+import 'package:sufra_app/features/branches/domain/entities/branch_entity.dart';
+import 'package:sufra_app/features/branches/presentation/cubit/branches/branches_cubit.dart';
+import 'package:sufra_app/features/branches/presentation/cubit/branches/branches_state.dart';
 
 class CheckoutView extends StatefulWidget {
   const CheckoutView({super.key});
@@ -23,6 +26,7 @@ class _CheckoutViewState extends State<CheckoutView> {
   final addressController = TextEditingController();
 
   String paymentMethod = 'cash';
+  String? selectedBranchId;
 
   static const Color primaryColor = Color(0xffB60F1A);
   static const double deliveryFee = 10;
@@ -35,8 +39,13 @@ class _CheckoutViewState extends State<CheckoutView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<OrdersCubit>(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<OrdersCubit>(create: (_) => getIt<OrdersCubit>()),
+        BlocProvider<BranchesCubit>(
+          create: (_) => getIt<BranchesCubit>()..getBranches(),
+        ),
+      ],
       child: BlocConsumer<OrdersCubit, OrdersState>(
         listener: (context, state) {
           if (state is OrderCreatedSuccess) {
@@ -97,6 +106,106 @@ class _CheckoutViewState extends State<CheckoutView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
+                            const _SectionTitle(
+                              title: 'اختر الفرع',
+                              icon: Icons.storefront_outlined,
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            BlocBuilder<BranchesCubit, BranchesState>(
+                              builder: (context, state) {
+                                if (state is BranchesLoading ||
+                                    state is BranchesInitial) {
+                                  return const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(16),
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  );
+                                }
+
+                                if (state is BranchesFailure) {
+                                  return Column(
+                                    children: [
+                                      const Text(
+                                        'تعذر تحميل الفروع، حاول مرة أخرى.',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          context
+                                              .read<BranchesCubit>()
+                                              .getBranches();
+                                        },
+                                        child: const Text('إعادة المحاولة'),
+                                      ),
+                                    ],
+                                  );
+                                }
+
+                                if (state is BranchesLoaded) {
+                                  final branches = state.branches;
+
+                                  if (branches.isEmpty) {
+                                    return const Text(
+                                      'لا توجد فروع متاحة حاليًا.',
+                                      textAlign: TextAlign.right,
+                                    );
+                                  }
+
+                                  final validSelection = branches.any(
+                                    (branch) => branch.id == selectedBranchId,
+                                  );
+
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: const Color(0xffEEEEEE),
+                                      ),
+                                    ),
+                                    child: DropdownButtonFormField<String>(
+                                      initialValue: validSelection
+                                          ? selectedBranchId
+                                          : null,
+                                      isExpanded: true,
+                                      decoration: const InputDecoration(
+                                        border: InputBorder.none,
+                                        icon: Icon(Icons.storefront_outlined),
+                                      ),
+                                      hint: const Text('اختر فرع المطعم'),
+                                      items: branches.map((
+                                        BranchEntity branch,
+                                      ) {
+                                        return DropdownMenuItem<String>(
+                                          value: branch.id,
+                                          child: Text(
+                                            '${branch.name} - ${branch.address}',
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        );
+                                      }).toList(),
+                                      onChanged: isLoading
+                                          ? null
+                                          : (value) {
+                                              setState(() {
+                                                selectedBranchId = value;
+                                              });
+                                            },
+                                    ),
+                                  );
+                                }
+
+                                return const SizedBox.shrink();
+                              },
+                            ),
+
+                            const SizedBox(height: 26),
                             const _SectionTitle(
                               title: 'عنوان التوصيل',
                               icon: Icons.location_on_outlined,
@@ -421,6 +530,22 @@ class _CheckoutViewState extends State<CheckoutView> {
       return;
     }
 
+    final branchesState = context.read<BranchesCubit>().state;
+
+    if (branchesState is! BranchesLoaded) {
+      _showMessage('يرجى الانتظار حتى يتم تحميل الفروع.');
+      return;
+    }
+
+    final selectedBranch = branchesState.branches.where(
+      (branch) => branch.id == selectedBranchId,
+    );
+
+    if (selectedBranchId == null || selectedBranch.isEmpty) {
+      _showMessage('من فضلك اختر فرع المطعم أولًا.');
+      return;
+    }
+
     if (paymentMethod == 'online') {
       final total = cartState.subtotal + deliveryFee;
 
@@ -445,6 +570,7 @@ class _CheckoutViewState extends State<CheckoutView> {
     final order = OrderEntity(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       userId: user.uid,
+      branchId: selectedBranchId!,
       items: items,
       subtotal: cartState.subtotal,
       deliveryFee: deliveryFee,

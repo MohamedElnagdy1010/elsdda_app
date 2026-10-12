@@ -6,6 +6,8 @@ class BranchEntity {
   final String whatsapp;
   final bool isActive;
   final int sortOrder;
+  final double? latitude;
+  final double? longitude;
 
   const BranchEntity({
     required this.id,
@@ -15,5 +17,7 @@ class BranchEntity {
     required this.whatsapp,
     required this.isActive,
     required this.sortOrder,
+    this.latitude,
+    this.longitude,
   });
 }

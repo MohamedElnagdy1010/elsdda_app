@@ -9,6 +9,8 @@ class BranchModel extends BranchEntity {
     required super.whatsapp,
     required super.isActive,
     required super.sortOrder,
+    super.latitude,
+    super.longitude,
   });
 
   factory BranchModel.fromMap({
@@ -23,6 +25,8 @@ class BranchModel extends BranchEntity {
       whatsapp: map['whatsapp']?.toString() ?? '',
       isActive: map['isActive'] as bool? ?? true,
       sortOrder: (map['sortOrder'] as num?)?.toInt() ?? 0,
+      latitude: (map['latitude'] as num?)?.toDouble(),
+      longitude: (map['longitude'] as num?)?.toDouble(),
     );
   }
 }

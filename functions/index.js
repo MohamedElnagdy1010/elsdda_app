@@ -2,7 +2,8 @@ const {setGlobalOptions} = require("firebase-functions");
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const {initializeApp} = require("firebase-admin/app");
 const {getFirestore, FieldValue} = require("firebase-admin/firestore");
-
+const {onDocumentUpdated} = require("firebase-functions/v2/firestore");
+const admin = require("firebase-admin");
 initializeApp();
 
 setGlobalOptions({
@@ -79,6 +80,18 @@ exports.createOrder = onCall(async (request) => {
     );
   }
 
+
+  const branchId =
+  typeof data.branchId === "string" ?
+    data.branchId.trim() :
+    "";
+
+if (!branchId || branchId.length > 128) {
+  throw new HttpsError(
+      "invalid-argument",
+      "A valid branch is required.",
+  );
+}
   // =========================
   // 3. Validate basic item data
   // =========================
@@ -293,6 +306,7 @@ exports.createOrder = onCall(async (request) => {
     paymentMethod,
     status: "pending",
     createdAt: FieldValue.serverTimestamp(),
+    branchId,
   };
 
   try {
@@ -316,8 +330,170 @@ exports.createOrder = onCall(async (request) => {
     deliveryFee,
     total,
     status: "pending",
+    branchId,
   };
 });
+
+exports.onOrderStatusChanged = onDocumentUpdated(
+    "orders/{orderId}",
+    async (event) => {
+      const before = event.data.before.data();
+      const after = event.data.after.data();
+
+      if (!before || !after) {
+        return;
+      }
+
+      const oldStatus = before.status;
+      const newStatus = after.status;
+
+      // مفيش تغيير في حالة الطلب
+      if (oldStatus === newStatus) {
+        return;
+      }
+
+      const userId = after.userId;
+
+      if (!userId) {
+        console.log("Order has no userId");
+        return;
+      }
+
+      const notification = getStatusNotification(newStatus);
+
+      if (!notification) {
+        console.log(`No notification configured for: ${newStatus}`);
+        return;
+      }
+
+      const devicesSnapshot = await admin
+          .firestore()
+          .collection("users")
+          .doc(userId)
+          .collection("devices")
+          .get();
+
+      if (devicesSnapshot.empty) {
+        console.log(`No devices found for user: ${userId}`);
+        return;
+      }
+
+      const tokens = devicesSnapshot.docs
+          .map((doc) => doc.data().token)
+          .filter((token) => typeof token === "string" && token.length > 0);
+
+      if (tokens.length === 0) {
+        console.log(`No valid tokens for user: ${userId}`);
+        return;
+      }
+
+      const message = {
+        tokens,
+        notification: {
+          title: notification.title,
+          body: notification.body,
+        },
+        data: {
+          type: "order_status",
+          orderId: event.params.orderId,
+          status: String(newStatus),
+        },
+        android: {
+          priority: "high",
+          notification: {
+            channelId: "order_updates",
+          },
+        },
+        apns: {
+          payload: {
+            aps: {
+              sound: "default",
+            },
+          },
+        },
+      };
+
+      const response = await admin.messaging().sendEachForMulticast(message);
+
+      console.log(
+          `Order ${event.params.orderId}: ` +
+        `${response.successCount} notifications sent, ` +
+        `${response.failureCount} failed`,
+      );
+
+      // حذف Tokens المنتهية أو غير الصالحة
+      const invalidTokens = [];
+
+      response.responses.forEach((result, index) => {
+        if (result.success) {
+          return;
+        }
+
+        const code = result.error ? result.error.code : null;
+
+        if (
+          code === "messaging/registration-token-not-registered" ||
+        code === "messaging/invalid-registration-token"
+        ) {
+          invalidTokens.push(tokens[index]);
+        }
+      });
+
+      await Promise.all(
+          invalidTokens.map((token) =>
+            admin
+                .firestore()
+                .collection("users")
+                .doc(userId)
+                .collection("devices")
+                .doc(token)
+                .delete(),
+          ),
+      );
+    },
+);
+/**
+ * Returns notification content for an order status.
+ *
+ * @param {string} status The new order status.
+ * @return {{title: string, body: string}|null} Notification content.
+ */
+function getStatusNotification(status) {
+  switch (status) {
+    case "pending":
+      return {
+        title: "تم استلام طلبك 🧾",
+        body: "استلمنا طلبك وجارٍ مراجعته.",
+      };
+
+    case "preparing":
+      return {
+        title: "طلبك قيد التحضير 🍳",
+        body: "بدأنا تجهيز طلبك الآن.",
+      };
+
+    case "ready":
+      return {
+        title: "طلبك جاهز ✅",
+        body: "تم تجهيز طلبك وهو جاهز للمرحلة التالية.",
+      };
+
+    case "delivered":
+      return {
+        title: "تم توصيل طلبك 🎉",
+        body: "بالهناء والشفاء، ونتمنى لك تجربة سعيدة مع SUFRA.",
+      };
+
+    case "cancelled":
+      return {
+        title: "تم إلغاء الطلب",
+        body: "تم تحديث حالة طلبك إلى ملغي.",
+      };
+
+    default:
+      return null;
+  }
+}
 
 /**
  * Rounds a monetary value to two decimal places.
@@ -328,3 +504,25 @@ exports.createOrder = onCall(async (request) => {
 function roundMoney(value) {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }
+let branchSnapshot;
+
+try {
+  branchSnapshot = await db.collection("branches").doc(branchId).get();
+} catch (error) {
+  console.error("Failed to load branch:", error);
+
+  throw new HttpsError(
+      "internal",
+      "Could not validate branch.",
+  );
+}
+
+if (!branchSnapshot.exists ||
+    branchSnapshot.data().isActive !== true) {
+  throw new HttpsError(
+      "failed-precondition",
+      "Selected branch is unavailable.",
+  );
+}
+
+

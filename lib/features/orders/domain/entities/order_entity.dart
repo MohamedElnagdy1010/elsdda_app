@@ -18,6 +18,7 @@ class OrderEntity extends Equatable {
 
   final DateTime createdAt;
 
+  final String branchId;
   const OrderEntity({
     required this.id,
     required this.userId,
@@ -30,6 +31,7 @@ class OrderEntity extends Equatable {
     this.paymentStatus = 'unpaid',
     required this.status,
     required this.createdAt,
+    required this.branchId,
   });
 
   bool get isPaid => paymentStatus == 'paid';
@@ -51,5 +53,6 @@ class OrderEntity extends Equatable {
     paymentStatus,
     status,
     createdAt,
+    branchId,
   ];
 }

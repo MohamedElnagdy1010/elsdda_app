@@ -9,6 +9,7 @@ import 'package:sufra_app/features/favorites/presentation/cubit/favorites_cubit.
 import 'package:sufra_app/splashview.dart';
 
 import 'firebase_options.dart';
+import 'package:sufra_app/core/notifications/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +17,8 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   setupDependencies();
+
+  await NotificationService.instance.initialize();
 
   runApp(
     MultiBlocProvider(
