@@ -34,6 +34,8 @@ class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
     await callable.call({
       'items': items,
       'address': order.address.trim(),
+      'deliveryLatitude': order.deliveryLatitude,
+      'deliveryLongitude': order.deliveryLongitude,
       'paymentMethod': order.paymentMethod,
       'branchId': order.branchId,
     });

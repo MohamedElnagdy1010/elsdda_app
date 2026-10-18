@@ -229,7 +229,7 @@ class _SummaryRow extends StatelessWidget {
           style: TextStyle(
             fontSize: isTotal ? 17 : 13,
             fontWeight: FontWeight.w700,
-            color: isTotal ? CartView.primaryColor : Colors.black87,
+            color: Colors.black87,
           ),
         ),
       ],

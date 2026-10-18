@@ -1,69 +1,40 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:sufra_app/core/styles/appColors.dart';
 
 class HomePromoBanner extends StatefulWidget {
   const HomePromoBanner({super.key});
-
   @override
   State<HomePromoBanner> createState() => _HomePromoBannerState();
 }
 
 class _HomePromoBannerState extends State<HomePromoBanner> {
-  static const int _initialPage = 1000;
-
-  final PageController _pageController = PageController(
-    initialPage: _initialPage,
-    viewportFraction: 1.0,
-  );
-
-  final List<String> _banners = const [
+  static const _images = [
     'assets/home/banners/banner_1.png',
     'assets/home/banners/banner_2.png',
     'assets/home/banners/banner_3.png',
   ];
-
+  final PageController _controller = PageController();
   Timer? _timer;
-
-  int _currentPage = 0;
-  int _virtualPage = _initialPage;
+  int _current = 0;
 
   @override
   void initState() {
     super.initState();
-    _startAutoPlay();
-  }
-
-  void _startAutoPlay() {
-    _timer?.cancel();
-
-    _timer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (!_pageController.hasClients) return;
-
-      _virtualPage++;
-
-      _pageController.animateToPage(
-        _virtualPage,
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!mounted || !_controller.hasClients) return;
+      _controller.animateToPage(
+        (_current + 1) % _images.length,
         duration: const Duration(milliseconds: 550),
         curve: Curves.easeInOutCubic,
       );
     });
   }
 
-  void _onPageChanged(int index) {
-    _virtualPage = index;
-
-    if (!mounted) return;
-
-    setState(() {
-      _currentPage = index % _banners.length;
-    });
-  }
-
   @override
   void dispose() {
     _timer?.cancel();
-    _pageController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -71,83 +42,49 @@ class _HomePromoBannerState extends State<HomePromoBanner> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SizedBox(
-          width: double.infinity,
-          height: 310,
+        AspectRatio(
+          aspectRatio: 2.05,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(19),
             child: PageView.builder(
-              controller: _pageController,
-              onPageChanged: _onPageChanged,
-              itemBuilder: (context, index) {
-                final bannerIndex = index % _banners.length;
-
-                return _BannerImage(imagePath: _banners[bannerIndex]);
-              },
+              controller: _controller,
+              itemCount: _images.length,
+              onPageChanged: (index) => setState(() => _current = index),
+              itemBuilder: (_, index) => Image.asset(
+                _images[index],
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => const ColoredBox(
+                  color: AppColors.primary,
+                  child: Center(
+                    child: Icon(
+                      Icons.restaurant_menu,
+                      color: AppColors.white,
+                      size: 40,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 9),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(_banners.length, (index) {
-            final selected = index == _currentPage;
-
-            return AnimatedContainer(
+          children: List.generate(
+            _images.length,
+            (index) => AnimatedContainer(
               duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOut,
-              width: selected ? 22 : 6,
-              height: 6,
               margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: index == _current ? 19 : 6,
+              height: 6,
               decoration: BoxDecoration(
-                color: selected
-                    ? const Color(0xffB60F1A)
-                    : const Color(0xffD9D9D9),
-                borderRadius: BorderRadius.circular(20),
+                color: index == _current ? AppColors.primary : AppColors.border,
+                borderRadius: BorderRadius.circular(12),
               ),
-            );
-          }),
+            ),
+          ),
         ),
       ],
-    );
-  }
-}
-
-class _BannerImage extends StatelessWidget {
-  final String imagePath;
-
-  const _BannerImage({required this.imagePath});
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xffF2F2F2),
-        borderRadius: BorderRadius.circular(22),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: Image.asset(
-          imagePath,
-          width: double.infinity,
-          height: double.infinity,
-
-          // هنحافظ على ملء مساحة البانر بالكامل.
-          fit: BoxFit.fill,
-
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              color: const Color(0xffB60F1A),
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.restaurant_menu_rounded,
-                size: 44,
-                color: Colors.white,
-              ),
-            );
-          },
-        ),
-      ),
     );
   }
 }

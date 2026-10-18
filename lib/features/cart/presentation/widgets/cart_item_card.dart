@@ -93,7 +93,7 @@ class CartItemCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: primaryColor,
+                    color: Colors.black87,
                   ),
                 ),
 
@@ -138,7 +138,7 @@ class CartItemCard extends StatelessWidget {
                       'الإجمالي ${item.totalPrice.toStringAsFixed(2)} ر.س',
                       style: const TextStyle(
                         fontSize: 11,
-                        color: Colors.grey,
+                        color: Colors.black87,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

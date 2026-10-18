@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:google_fonts/google_fonts.dart';
+import 'package:sufra_app/core/styles/appColors.dart';
 import 'package:sufra_app/features/cart/presentation/cubit/cart/cart_cubit.dart';
 import 'package:sufra_app/features/cart/presentation/views/cart_view.dart';
 import 'package:sufra_app/features/notifications/presentation/views/notifications_view.dart';
@@ -10,279 +11,178 @@ import 'package:sufra_app/features/profile/presentation/cubit/profile/profile_st
 class HomeHeader extends StatelessWidget {
   const HomeHeader({super.key});
 
-  static const Color _primaryColor = Color(0xffB60F1A);
-  static const Color _darkColor = Color(0xff211916);
-
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProfileCubit, ProfileState>(
-      builder: (context, state) {
-        final user = _getUserFromState(state);
-
-        final name = user?.name.trim() ?? '';
-        final address = user?.address.trim() ?? '';
-
-        return Column(
-          children: [
-            // =========================
-            // First Row: Name + Logo
-            // =========================
-            // =========================
-            // First Row: Name + Logo
-            // =========================
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Logo - Left
-                Image.asset(
-                  'assets/splash_logo2.png',
-                  width: 80,
-                  height: 62,
-                  fit: BoxFit.cover,
-                ),
-
-                const SizedBox(width: 12),
-
-                // Name - Right
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        name.isEmpty ? 'أهلًا بك' : 'أهلًا، $name',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          color: _darkColor,
-                          height: 1.2,
-                        ),
-                      ),
-
-                      const SizedBox(height: 4),
-
-                      const Text(
-                        'إيه اللي نفسك تاكله النهارده؟',
-                        textAlign: TextAlign.right,
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xff8A817D),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+    return SizedBox(
+      height: 252,
+      width: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            'assets/welcome_food.png',
+            fit: BoxFit.cover,
+            alignment: Alignment.centerLeft,
+          ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.centerRight,
+                end: Alignment.centerLeft,
+                colors: [
+                  Colors.black.withValues(alpha: 0.80),
+                  Colors.black.withValues(alpha: 0.48),
+                  Colors.black.withValues(alpha: 0.28),
+                ],
+              ),
             ),
-            const SizedBox(height: 15),
-
-            // =========================
-            // Second Row: Location + Actions
-            // =========================
-            Row(
-              textDirection: TextDirection.rtl,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () {
-                      // Google Maps / Address selector later.
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5),
-                      child: Row(
-                        textDirection: TextDirection.rtl,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.location_on_rounded,
-                            size: 20,
-                            color: _primaryColor,
-                          ),
-
-                          const SizedBox(width: 5),
-
-                          Flexible(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
+          ),
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 13, 18, 82),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: BlocBuilder<ProfileCubit, ProfileState>(
+                      builder: (context, state) {
+                        String name = '';
+                        String address = '';
+                        if (state is ProfileLoaded) {
+                          name = state.user.name.trim();
+                          address = state.user.address.trim();
+                        } else if (state is ProfileUpdating) {
+                          name = state.user.name.trim();
+                          address = state.user.address.trim();
+                        } else if (state is ProfileUpdateSuccess) {
+                          name = state.user.name.trim();
+                          address = state.user.address.trim();
+                        } else if (state is ProfileUpdateFailure) {
+                          name = state.user.name.trim();
+                          address = state.user.address.trim();
+                        }
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              name.isEmpty
+                                  ? 'أهلًا بك في سفرة'
+                                  : 'أهلًا، $name',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.right,
+                              style: GoogleFonts.cairo(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Text(
-                                  'موقع التوصيل',
-                                  style: TextStyle(
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xff99918D),
-                                  ),
+                                const Icon(
+                                  Icons.location_on_rounded,
+                                  size: 17,
+                                  color: AppColors.white,
                                 ),
-
-                                const SizedBox(height: 1),
-
-                                Row(
-                                  textDirection: TextDirection.rtl,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Flexible(
-                                      child: Text(
-                                        address.isEmpty ? 'أضف موقعك' : address,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.right,
-                                        style: const TextStyle(
-                                          fontSize: 12.5,
-                                          fontWeight: FontWeight.w800,
-                                          color: _darkColor,
-                                        ),
-                                      ),
+                                const SizedBox(width: 3),
+                                Flexible(
+                                  child: Text(
+                                    address.isEmpty
+                                        ? 'أضف موقع التوصيل'
+                                        : address,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.right,
+                                    style: GoogleFonts.cairo(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.white,
                                     ),
-
-                                    const SizedBox(width: 3),
-
-                                    const Icon(
-                                      Icons.keyboard_arrow_down_rounded,
-                                      size: 17,
-                                      color: Color(0xff77706C),
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  BlocBuilder<CartCubit, dynamic>(
+                    builder: (context, state) => _HeaderIcon(
+                      icon: Icons.shopping_bag_outlined,
+                      count: state.totalQuantity as int,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const CartView()),
                       ),
                     ),
                   ),
-                ),
-
-                const SizedBox(width: 18),
-
-                // Cart
-                _CartButton(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const CartView()),
-                    );
-                  },
-                ),
-
-                const SizedBox(width: 17),
-
-                // Notifications
-                _ModernIconButton(
-                  icon: Icons.notifications_none_rounded,
-                  onTap: () {
-                    Navigator.push(
+                  const SizedBox(width: 15),
+                  _HeaderIcon(
+                    icon: Icons.notifications_none_rounded,
+                    onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => const NotificationsView(),
                       ),
-                    );
-                  },
-                ),
-              ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        );
-      },
-    );
-  }
-
-  dynamic _getUserFromState(ProfileState state) {
-    if (state is ProfileLoaded) {
-      return state.user;
-    }
-
-    if (state is ProfileUpdating) {
-      return state.user;
-    }
-
-    if (state is ProfileUpdateSuccess) {
-      return state.user;
-    }
-
-    if (state is ProfileUpdateFailure) {
-      return state.user;
-    }
-
-    return null;
-  }
-}
-
-class _ModernIconButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _ModernIconButton({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 37,
-          height: 37,
-          child: Icon(icon, size: 27, color: const Color(0xff211916)),
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _CartButton extends StatelessWidget {
+class _HeaderIcon extends StatelessWidget {
+  const _HeaderIcon({required this.icon, required this.onTap, this.count = 0});
+  final IconData icon;
   final VoidCallback onTap;
-
-  const _CartButton({required this.onTap});
+  final int count;
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CartCubit, dynamic>(
-      builder: (context, state) {
-        final count = state.totalQuantity;
-
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            _ModernIconButton(icon: Icons.shopping_bag_outlined, onTap: onTap),
-
-            if (count > 0)
-              Positioned(
-                right: -2,
-                top: -3,
-                child: Container(
-                  constraints: const BoxConstraints(
-                    minWidth: 17,
-                    minHeight: 17,
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: const Color(0xffB60F1A),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: const Color(0xffFAFAFA),
-                      width: 2,
-                    ),
-                  ),
-                  child: Text(
-                    count > 99 ? '99+' : '$count',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 8,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IconButton(
+          onPressed: onTap,
+          icon: Icon(icon, color: AppColors.white, size: 25),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 36),
+          tooltip: icon == Icons.shopping_bag_outlined ? 'السلة' : 'الإشعارات',
+        ),
+        if (count > 0)
+          Positioned(
+            top: -3,
+            left: -4,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              constraints: const BoxConstraints(minWidth: 17, minHeight: 17),
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                count > 99 ? '99+' : '$count',
+                style: const TextStyle(
+                  color: AppColors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-          ],
-        );
-      },
+            ),
+          ),
+      ],
     );
   }
 }

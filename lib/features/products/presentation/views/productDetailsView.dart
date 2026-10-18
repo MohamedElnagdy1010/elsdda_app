@@ -200,7 +200,7 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
           style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: Color(0xffB60F1A),
+            color: Colors.black87,
           ),
         ),
       ],
@@ -370,7 +370,7 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
               'السعر بعد الاختيار: ${unitPrice.toStringAsFixed(0)} ر.س',
               textDirection: TextDirection.rtl,
               style: const TextStyle(
-                color: Color(0xffB60F1A),
+                color: Colors.black87,
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,
               ),
@@ -473,7 +473,7 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                   '${totalPrice.toStringAsFixed(0)} ر.س',
                   textDirection: TextDirection.rtl,
                   style: const TextStyle(
-                    color: Color(0xffB60F1A),
+                    color: Colors.black87,
                     fontSize: 21,
                     fontWeight: FontWeight.w900,
                   ),

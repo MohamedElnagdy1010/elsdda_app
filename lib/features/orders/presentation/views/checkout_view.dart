@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
+import 'delivery_location_picker_view.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:sufra_app/core/dependency_injection/dependency_injection.dart';
@@ -27,6 +29,7 @@ class _CheckoutViewState extends State<CheckoutView> {
 
   String paymentMethod = 'cash';
   String? selectedBranchId;
+  LatLng? selectedDeliveryLocation;
 
   static const Color primaryColor = Color(0xffB60F1A);
   static const double deliveryFee = 10;
@@ -213,40 +216,57 @@ class _CheckoutViewState extends State<CheckoutView> {
 
                             const SizedBox(height: 12),
 
-                            TextField(
-                              controller: addressController,
-                              enabled: !isLoading,
-                              keyboardType: TextInputType.streetAddress,
-                              textDirection: TextDirection.rtl,
-                              textAlign: TextAlign.right,
-                              maxLines: 2,
-                              maxLength: 300,
-                              decoration: InputDecoration(
-                                hintText: 'اكتب عنوان التوصيل بالتفصيل',
-                                counterText: '',
-                                filled: true,
-                                fillColor: Colors.white,
-                                prefixIcon: const Icon(
-                                  Icons.location_on_outlined,
-                                  color: Colors.grey,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: BorderSide.none,
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xffEEEEEE),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                OutlinedButton.icon(
+                                  onPressed: isLoading
+                                      ? null
+                                      : _pickDeliveryLocation,
+                                  icon: const Icon(Icons.location_on_outlined),
+                                  label: Text(
+                                    selectedDeliveryLocation == null
+                                        ? 'تحديد موقع التوصيل على الخريطة'
+                                        : 'تغيير موقع التوصيل',
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: primaryColor,
+                                    backgroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                      horizontal: 12,
+                                    ),
+                                    side: const BorderSide(
+                                      color: Color(0xffEEEEEE),
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
                                   ),
                                 ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(
-                                    color: primaryColor,
+                                if (selectedDeliveryLocation != null) ...[
+                                  const SizedBox(height: 8),
+                                  const Row(
+                                    textDirection: TextDirection.rtl,
+                                    children: [
+                                      Icon(
+                                        Icons.check_circle,
+                                        size: 18,
+                                        color: Colors.green,
+                                      ),
+                                      SizedBox(width: 6),
+                                      Text(
+                                        'تم تحديد موقع التوصيل',
+                                        style: TextStyle(
+                                          color: Colors.black87,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ),
+                                ],
+                                const SizedBox(height: 12),
+                              ],
                             ),
 
                             const SizedBox(height: 26),
@@ -500,10 +520,34 @@ class _CheckoutViewState extends State<CheckoutView> {
     );
   }
 
+  Future<void> _pickDeliveryLocation() async {
+    final location = await Navigator.of(context).push<LatLng>(
+      MaterialPageRoute(
+        builder: (_) => DeliveryLocationPickerView(
+          initialLocation: selectedDeliveryLocation,
+        ),
+      ),
+    );
+
+    if (!mounted || location == null) return;
+
+    setState(() {
+      selectedDeliveryLocation = location;
+    });
+  }
+
   Future<void> _createOrder(BuildContext context) async {
     final user = FirebaseAuth.instance.currentUser;
     final cartState = context.read<CartCubit>().state;
-    final address = addressController.text.trim();
+    final location = selectedDeliveryLocation;
+    final address = location == null
+        ? ''
+        : 'موقع التوصيل: ${location.latitude.toStringAsFixed(6)}, ${location.longitude.toStringAsFixed(6)}';
+
+    if (selectedDeliveryLocation == null) {
+      _showMessage('من فضلك حدد موقع التوصيل على الخريطة.');
+      return;
+    }
 
     if (user == null) {
       _showMessage('يجب تسجيل الدخول أولًا.');
@@ -576,6 +620,8 @@ class _CheckoutViewState extends State<CheckoutView> {
       deliveryFee: deliveryFee,
       total: cartState.subtotal + deliveryFee,
       address: address,
+      deliveryLatitude: location!.latitude,
+      deliveryLongitude: location.longitude,
       paymentMethod: 'cash',
       paymentStatus: 'unpaid',
       status: 'pending',

@@ -42,6 +42,39 @@ exports.createOrder = onCall(async (request) => {
     );
   }
 
+  const deliveryLatitude = (request.data && request.data.deliveryLatitude);
+  const deliveryLongitude = (request.data && request.data.deliveryLongitude);
+
+  const hasLatitude = deliveryLatitude !== undefined &&
+      deliveryLatitude !== null;
+  const hasLongitude = deliveryLongitude !== undefined &&
+      deliveryLongitude !== null;
+
+  if (hasLatitude !== hasLongitude) {
+    throw new HttpsError(
+        "invalid-argument",
+        "Delivery coordinates must include both latitude and longitude.",
+    );
+  }
+
+  if (hasLatitude) {
+    if (
+      typeof deliveryLatitude !== "number" ||
+        typeof deliveryLongitude !== "number" ||
+        !Number.isFinite(deliveryLatitude) ||
+        !Number.isFinite(deliveryLongitude) ||
+        deliveryLatitude < -90 ||
+        deliveryLatitude > 90 ||
+        deliveryLongitude < -180 ||
+        deliveryLongitude > 180
+    ) {
+      throw new HttpsError(
+          "invalid-argument",
+          "Invalid delivery coordinates.",
+      );
+    }
+  }
+
   const address =
     typeof data.address === "string" ? data.address.trim() : "";
 
@@ -86,12 +119,34 @@ exports.createOrder = onCall(async (request) => {
     data.branchId.trim() :
     "";
 
-if (!branchId || branchId.length > 128) {
-  throw new HttpsError(
-      "invalid-argument",
-      "A valid branch is required.",
-  );
-}
+  if (!branchId || branchId.length > 128) {
+    throw new HttpsError(
+        "invalid-argument",
+        "A valid branch is required.",
+    );
+  }
+
+  let branchSnapshot;
+
+  try {
+    branchSnapshot = await db.collection("branches").doc(branchId).get();
+  } catch (error) {
+    console.error("Failed to load branch:", error);
+
+    throw new HttpsError(
+        "internal",
+        "Could not validate branch.",
+    );
+  }
+
+  if (!branchSnapshot.exists ||
+    branchSnapshot.data().isActive !== true) {
+    throw new HttpsError(
+        "failed-precondition",
+        "Selected branch is unavailable.",
+    );
+  }
+
   // =========================
   // 3. Validate basic item data
   // =========================
@@ -303,6 +358,7 @@ if (!branchId || branchId.length > 128) {
     deliveryFee,
     total,
     address,
+    ...(hasLatitude ? {deliveryLatitude, deliveryLongitude} : {}),
     paymentMethod,
     status: "pending",
     createdAt: FieldValue.serverTimestamp(),
@@ -504,25 +560,3 @@ function getStatusNotification(status) {
 function roundMoney(value) {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }
-let branchSnapshot;
-
-try {
-  branchSnapshot = await db.collection("branches").doc(branchId).get();
-} catch (error) {
-  console.error("Failed to load branch:", error);
-
-  throw new HttpsError(
-      "internal",
-      "Could not validate branch.",
-  );
-}
-
-if (!branchSnapshot.exists ||
-    branchSnapshot.data().isActive !== true) {
-  throw new HttpsError(
-      "failed-precondition",
-      "Selected branch is unavailable.",
-  );
-}
-
-

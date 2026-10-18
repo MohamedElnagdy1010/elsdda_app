@@ -60,6 +60,16 @@ class ProductsCubit extends Cubit<ProductsState> {
     }
   }
 
+  Future<void> loadPopularProducts() async {
+    emit(CategoryProductsLoading());
+    try {
+      final products = await getPopularProductsUseCase();
+      emit(CategoryProductsLoaded(products: products));
+    } catch (_) {
+      emit(CategoryProductsFailure('Failed to load popular products'));
+    }
+  }
+
   Future<void> loadAllProducts() async {
     emit(CategoryProductsLoading());
 

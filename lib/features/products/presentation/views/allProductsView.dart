@@ -11,11 +11,13 @@ import 'package:sufra_app/core/utils/local_image_mapper.dart';
 
 class AllProductsView extends StatelessWidget {
   final String? categoryId;
+  final bool popularOnly;
   final String categoryName;
 
   const AllProductsView({
     super.key,
     this.categoryId,
+    this.popularOnly = false,
     this.categoryName = 'كل المنتجات',
   });
 
@@ -25,7 +27,9 @@ class AllProductsView extends StatelessWidget {
       create: (_) {
         final cubit = getIt<ProductsCubit>();
 
-        if (categoryId == null) {
+        if (popularOnly) {
+          cubit.loadPopularProducts();
+        } else if (categoryId == null) {
           cubit.loadAllProducts();
         } else {
           cubit.loadProductsByCategory(categoryId!);
@@ -103,7 +107,9 @@ class AllProductsView extends StatelessWidget {
                               onPressed: () {
                                 final cubit = context.read<ProductsCubit>();
 
-                                if (categoryId == null) {
+                                if (popularOnly) {
+                                  cubit.loadPopularProducts();
+                                } else if (categoryId == null) {
                                   cubit.loadAllProducts();
                                 } else {
                                   cubit.loadProductsByCategory(categoryId!);

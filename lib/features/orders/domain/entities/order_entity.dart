@@ -12,6 +12,8 @@ class OrderEntity extends Equatable {
   final double total;
 
   final String address;
+  final double? deliveryLatitude;
+  final double? deliveryLongitude;
   final String paymentMethod;
   final String paymentStatus;
   final String status;
@@ -27,6 +29,8 @@ class OrderEntity extends Equatable {
     required this.deliveryFee,
     required this.total,
     required this.address,
+    this.deliveryLatitude,
+    this.deliveryLongitude,
     required this.paymentMethod,
     this.paymentStatus = 'unpaid',
     required this.status,
@@ -49,6 +53,8 @@ class OrderEntity extends Equatable {
     deliveryFee,
     total,
     address,
+    deliveryLatitude,
+    deliveryLongitude,
     paymentMethod,
     paymentStatus,
     status,

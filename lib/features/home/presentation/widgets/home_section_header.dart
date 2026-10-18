@@ -1,52 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:sufra_app/core/styles/appColors.dart';
 
 class HomeSectionHeader extends StatelessWidget {
+  const HomeSectionHeader({super.key, required this.title, this.onViewAll});
   final String title;
   final VoidCallback? onViewAll;
-
-  const HomeSectionHeader({super.key, required this.title, this.onViewAll});
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      textDirection: TextDirection.rtl,
       children: [
         Expanded(
           child: Text(
             title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.right,
-            style: const TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: Color(0xff1C1C1C),
+              color: AppColors.textPrimary,
             ),
           ),
         ),
-        if (onViewAll != null) ...[
-          const SizedBox(width: 10),
+        if (onViewAll != null)
           TextButton(
             onPressed: onViewAll,
             style: TextButton.styleFrom(
-              foregroundColor: const Color(0xffB60F1A),
-              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              foregroundColor: AppColors.primary,
+              padding: EdgeInsets.zero,
+              minimumSize: const Size(52, 36),
             ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'عرض الكل',
-                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
-                ),
-                SizedBox(width: 3),
-                Icon(Icons.arrow_back_ios_new_rounded, size: 10),
-              ],
+            child: Text(
+              'عرض الكل',
+              style: GoogleFonts.cairo(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
-        ],
       ],
     );
   }
